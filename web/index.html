@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>TIJE Live — Rasuna Said ➜ Jakarta Barat</title>
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- ============== PANEL KIRI / BOTTOM SHEET ============== -->
+    <aside id="panel">
+      <div class="sheet-handle" id="sheetHandle"></div>
+
+      <header class="topbar">
+        <div class="brand">
+          <div class="logo">TJ</div>
+          <div>
+            <div class="brand-title">TIJE Live</div>
+            <div class="brand-sub">Perencana Rute &amp; Pelacak Bus</div>
+          </div>
+        </div>
+        <div class="clock">
+          <div id="clock">--:--:--</div>
+          <div class="clock-sub">WIB</div>
+        </div>
+      </header>
+
+      <section class="search-card">
+        <div class="search-row">
+          <span class="dot dot-origin"></span>
+          <div>
+            <div class="search-label">Dari</div>
+            <div class="search-value">Halte Rasuna Said</div>
+          </div>
+        </div>
+        <div class="search-sep"></div>
+        <div class="search-row">
+          <span class="dot dot-dest"></span>
+          <div>
+            <div class="search-label">Ke</div>
+            <div class="search-value">Jakarta Barat <span class="muted">· 4 tujuan</span></div>
+          </div>
+        </div>
+      </section>
+
+      <div class="status-strip">
+        <span id="modeBadge" class="badge badge-sched"><i></i>Estimasi jadwal GTFS</span>
+        <span id="dayBadge" class="badge badge-plain">—</span>
+      </div>
+
+      <section>
+        <div class="section-title">Pilihan rute <span class="muted" id="planNote">berangkat sekarang</span></div>
+        <div id="journeyList" class="journey-list"></div>
+      </section>
+
+      <section id="detail" class="detail"></section>
+
+      <footer class="foot">
+        Data: <a href="https://gtfs.transjakarta.co.id/" target="_blank" rel="noopener">GTFS resmi Transjakarta</a>
+        (CC BY 4.0) · feed <span id="feedDate"></span><br />
+        Posisi bus dihitung dari jadwal resmi (frekuensi, waktu antar-halte, dan rute jalan asli), bukan dari GPS bus.
+        Peta © OpenStreetMap contributors © CARTO.
+      </footer>
+    </aside>
+
+    <!-- ============== PETA ============== -->
+    <main id="mapWrap">
+      <div id="map"></div>
+
+      <div class="map-toolbar">
+        <button id="btnFit" title="Tampilkan seluruh rute">⤢ Rute</button>
+        <button id="btnLocate" title="Ke Halte Rasuna Said">◎ Rasuna Said</button>
+        <label class="toggle"><input type="checkbox" id="chkAllBuses" /> Semua bus koridor</label>
+        <label class="toggle"><input type="checkbox" id="chkNetwork" checked /> Jaringan BRT</label>
+      </div>
+
+      <div id="busCard" class="bus-card hidden"></div>
+      <div id="toast" class="toast hidden"></div>
+    </main>
+  </div>
+
+  <script src="vendor/leaflet/leaflet.js"></script>
+  <script src="config.js"></script>
+  <script src="data.js"></script>
+  <script src="engine.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+# Raw GTFS archive & extracted CSVs (~20 MB) - generated via scripts/build_data.py
+data/gtfs.zip
+data/gtfs/
+.DS_Store
+__pycache__/
+*.pyc
