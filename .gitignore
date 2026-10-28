@@ -4,3 +4,8 @@ data/gtfs/
 .DS_Store
 __pycache__/
 *.pyc
+node_modules/
+ios/App/Pods/
+ios/DerivedData/
+.DS_Store
+build/

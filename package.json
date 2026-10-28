@@ -1,0 +1,18 @@
+{
+  "name": "tije-live",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TIJE Live - Transjakarta route planner & bus tracker (iOS via Capacitor)",
+  "scripts": {
+    "sync": "cap sync ios",
+    "open": "cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^8.5.3",
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/ios": "^8.5.3",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.4"
+  }
+}

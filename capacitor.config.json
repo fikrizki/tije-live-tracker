@@ -1,0 +1,9 @@
+{
+  "appId": "id.arfr.tijelive",
+  "appName": "TIJE Live",
+  "webDir": "web",
+  "ios": { "contentInset": "always", "backgroundColor": "#ffffff" },
+  "plugins": {
+    "SplashScreen": { "launchAutoHide": true, "launchShowDuration": 800, "backgroundColor": "#ffffff" }
+  }
+}
