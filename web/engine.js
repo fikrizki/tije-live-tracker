@@ -1,5 +1,5 @@
 /*
- * TIJE Engine — mesin posisi armada & ETA berbasis GTFS resmi Transjakarta.
+ * TIJE Engine: mesin posisi armada & ETA berbasis GTFS resmi Transjakarta.
  *
  * Posisi tiap bus dihitung dari:
  *   frequencies.txt  -> jendela operasi & headway (bus berangkat tiap N detik)
@@ -227,8 +227,54 @@
     return { ok: true, steps, start: clock.sec, end: t, duration: t - clock.sec };
   }
 
+  /** Headway (detik) yang berlaku pada detik `sec`, atau null jika di luar jendela operasi. */
+  function headwayAt(freq, sec) {
+    let best = null;
+    for (const [s, e, h] of freq) if (sec >= s && sec < e && (best == null || h < best)) best = h;
+    return best;
+  }
+
+  /** Keberangkatan terakhir dari terminal awal dalam satu set jendela frekuensi. */
+  function lastDeparture(freq) {
+    let last = -1;
+    for (const [s, e, h] of freq) last = Math.max(last, s + Math.floor((e - 1 - s) / h) * h);
+    return last;
+  }
+
+  /**
+   * Status operasi satu rute dari ringkasan jadwal di katalog (routes-index.js).
+   * route.sched = [[service_id, durasi tempuh (detik), [[start, end, headway], ...]], ...]
+   * Hasil: jumlah bus yang sedang di jalan (estimasi jadwal), jam keberangkatan pertama &
+   * terakhir hari ini, dan state: "run" | "before" (belum mulai) | "after" (sudah selesai) | "off" (tidak ada layanan hari ini).
+   */
+  function routeLive(calendar, route, clock) {
+    let buses = 0, first = null, last = null, next = null, allDay = false;
+    for (const [svc, T, freq] of route.sched) {
+      const c = calendar[svc];
+      if (c && c[clock.weekday] !== 1) continue;
+      buses += activeDepartures({ t: [0, T], freq }, clock.sec).length;
+      for (const [s, e, h] of freq) {
+        if (first == null || s < first) first = s;
+        // keberangkatan berikutnya dari terminal awal (untuk rute berfrekuensi jarang)
+        const k = Math.max(0, Math.ceil((clock.sec - s) / h));
+        const d = s + k * h;
+        if (d < e && (next == null || d < next)) next = d;
+      }
+      const l = lastDeparture(freq);
+      if (last == null || l > last) last = l;
+      if (freq.some(([s, e]) => s === 0 && e >= DAY - 1)) allDay = true;
+    }
+    let state;
+    if (first == null) state = "off";
+    else if (buses > 0) state = "run";
+    else if (next != null) state = clock.sec < first ? "before" : "wait";
+    else state = "after";
+    return { buses, first, last, next, allDay, state };
+  }
+
   return {
     wibNow, fmtClock, fmtWait, serviceActive, activeDepartures, vehicleState, fleet,
     nextArrivals, legPositions, planJourney, pointAtDist, haversine, stationOf,
+    headwayAt, lastDeparture, routeLive,
   };
 });

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>TIJE Live — Rasuna Said ➜ Jakarta Barat</title>
+  <title>TIJE Live · Semua Rute Transjakarta</title>
   <link rel="stylesheet" href="vendor/leaflet/leaflet.css" />
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -11,11 +11,11 @@
   <div id="app">
     <!-- ============== PANEL KIRI / BOTTOM SHEET ============== -->
     <aside id="panel">
-      <div class="sheet-handle" id="sheetHandle"></div>
+      <button class="sheet-handle" id="sheetHandle" type="button" aria-label="Perbesar atau perkecil panel"></button>
 
       <header class="topbar">
         <div class="brand">
-          <div class="logo">TJ</div>
+          <div class="logo" aria-hidden="true">TJ</div>
           <div>
             <div class="brand-title">TIJE Live</div>
             <div class="brand-sub">Perencana Rute &amp; Pelacak Bus</div>
@@ -27,41 +27,68 @@
         </div>
       </header>
 
-      <section class="search-card">
-        <div class="search-row">
-          <span class="dot dot-origin"></span>
-          <div>
-            <div class="search-label">Dari</div>
-            <div class="search-value">Halte Rasuna Said</div>
-          </div>
-        </div>
-        <div class="search-sep"></div>
-        <div class="search-row">
-          <span class="dot dot-dest"></span>
-          <div>
-            <div class="search-label">Ke</div>
-            <div class="search-value">Jakarta Barat <span class="muted">· 4 tujuan</span></div>
-          </div>
-        </div>
-      </section>
+      <div class="tabs" role="tablist" aria-label="Mode aplikasi">
+        <button type="button" role="tab" id="tabJourney" aria-controls="viewJourney" aria-selected="true">Rasuna Said ke Jakbar</button>
+        <button type="button" role="tab" id="tabRoutes" aria-controls="viewRoutes" aria-selected="false" tabindex="-1">Semua Rute <span id="routeTotal" class="tab-count"></span></button>
+      </div>
 
       <div class="status-strip">
         <span id="modeBadge" class="badge badge-sched"><i></i>Estimasi jadwal GTFS</span>
-        <span id="dayBadge" class="badge badge-plain">—</span>
+        <span id="dayBadge" class="badge badge-plain">Memuat</span>
       </div>
 
-      <section>
-        <div class="section-title">Pilihan rute <span class="muted" id="planNote">berangkat sekarang</span></div>
-        <div id="journeyList" class="journey-list"></div>
-      </section>
+      <!-- ---------- Mode 1: 4 perjalanan Rasuna Said ke Jakarta Barat ---------- -->
+      <div id="viewJourney" role="tabpanel" aria-labelledby="tabJourney" class="view">
+        <section class="search-card">
+          <div class="search-row">
+            <span class="dot dot-origin"></span>
+            <div>
+              <div class="search-label">Dari</div>
+              <div class="search-value">Halte Rasuna Said</div>
+            </div>
+          </div>
+          <div class="search-sep"></div>
+          <div class="search-row">
+            <span class="dot dot-dest"></span>
+            <div>
+              <div class="search-label">Ke</div>
+              <div class="search-value">Jakarta Barat <span class="muted">· 4 tujuan</span></div>
+            </div>
+          </div>
+        </section>
 
-      <section id="detail" class="detail"></section>
+        <section>
+          <div class="section-title">Pilihan rute <span class="muted" id="planNote">berangkat sekarang</span></div>
+          <div id="journeyList" class="journey-list"></div>
+        </section>
+
+        <section id="detail" class="detail"></section>
+      </div>
+
+      <!-- ---------- Mode 2: semua rute Transjakarta ---------- -->
+      <div id="viewRoutes" role="tabpanel" aria-labelledby="tabRoutes" class="view" hidden>
+        <div id="routesBrowse">
+          <div class="finder">
+            <label class="finder-input">
+              <span class="sr-only">Cari rute atau halte</span>
+              <input id="routeQuery" type="search" autocomplete="off" enterkeyhint="search"
+                     placeholder="Cari rute atau halte" />
+            </label>
+            <button type="button" id="btnNearby" class="finder-near">Halte terdekat</button>
+          </div>
+          <div id="catFilter" class="cat-filter" role="group" aria-label="Filter jenis layanan"></div>
+          <label class="run-only"><input type="checkbox" id="chkRunning" /> Hanya yang sedang beroperasi</label>
+          <div id="placeResults"></div>
+          <div id="routeList" class="route-list"></div>
+        </div>
+        <div id="routeDetail" class="route-detail" hidden></div>
+      </div>
 
       <footer class="foot">
         Data: <a href="https://gtfs.transjakarta.co.id/" target="_blank" rel="noopener">GTFS resmi Transjakarta</a>
         (CC BY 4.0) · feed <span id="feedDate"></span><br />
         Posisi bus dihitung dari jadwal resmi (frekuensi, waktu antar-halte, dan rute jalan asli), bukan dari GPS bus.
-        Peta © OpenStreetMap contributors © CARTO.
+        Peta © OpenStreetMap contributors · Esri.
       </footer>
     </aside>
 
@@ -70,21 +97,24 @@
       <div id="map"></div>
 
       <div class="map-toolbar">
-        <button id="btnFit" title="Tampilkan seluruh rute">⤢ Rute</button>
-        <button id="btnLocate" title="Ke Halte Rasuna Said">◎ Rasuna Said</button>
-        <label class="toggle"><input type="checkbox" id="chkAllBuses" /> Semua bus koridor</label>
-        <label class="toggle"><input type="checkbox" id="chkNetwork" checked /> Jaringan BRT</label>
+        <button type="button" id="btnFit" title="Tampilkan seluruh rute">⤢ Rute</button>
+        <button type="button" id="btnLocate" title="Ke Halte Rasuna Said">◎ Rasuna Said</button>
+        <label class="toggle" id="lblAllBuses"><input type="checkbox" id="chkAllBuses" /> Semua bus koridor</label>
+        <label class="toggle"><input type="checkbox" id="chkNetwork" checked /> <span id="lblNetwork">Jaringan BRT</span></label>
       </div>
 
       <div id="busCard" class="bus-card hidden"></div>
-      <div id="toast" class="toast hidden"></div>
+      <div id="routeBusCard" class="bus-card hidden"></div>
+      <div id="toast" class="toast hidden" role="status"></div>
     </main>
   </div>
 
   <script src="vendor/leaflet/leaflet.js"></script>
   <script src="config.js"></script>
   <script src="data.js"></script>
+  <script src="routes-index.js"></script>
   <script src="engine.js"></script>
+  <script src="routes.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

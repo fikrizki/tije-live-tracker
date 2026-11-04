@@ -1,4 +1,4 @@
-/* TIJE Live — UI peta & panel. Bergantung pada: Leaflet, TIJE_DATA, TijeEngine, TIJE_CONFIG. */
+/* TIJE Live · UI peta & panel (mode perjalanan Rasuna Said + pengatur mode). Bergantung pada: Leaflet, TIJE_DATA, TijeEngine, TIJE_CONFIG. */
 (function () {
   "use strict";
 
@@ -16,6 +16,7 @@
     expanded: {},          // leg index -> daftar halte terbuka
     liveVehicles: [],      // dari liveFeedUrl (opsional)
     lastPanelSec: -1,
+    mode: "journey",       // "journey" | "routes"
   };
 
   // ======================================================================= helpers
@@ -51,7 +52,7 @@
   }
 
   // ======================================================================= peta
-  const map = L.map("map", { zoomControl: false, preferCanvas: false, minZoom: 11, maxZoom: 19 })
+  const map = L.map("map", { zoomControl: false, preferCanvas: false, minZoom: 9, maxZoom: 19 })
     .setView([-6.195, 106.79], 13);
   L.control.zoom({ position: "bottomright" }).addTo(map);
   L.control.scale({ position: "bottomleft", imperial: false }).addTo(map);
@@ -105,6 +106,7 @@
     m.on("click", () => openStationPopup(s.id, [s.lat, s.lon]));
   }
   $("chkNetwork").addEventListener("change", (e) => {
+    if (state.mode === "routes") { routesMode.setNetwork(e.target.checked); return; }
     if (e.target.checked) networkLayer.addTo(map); else map.removeLayer(networkLayer);
   });
 
@@ -229,8 +231,17 @@
   }
 
   let lastFleet = [];
+  function clearJourneyBuses() {
+    for (const m of busMarkers.values()) map.removeLayer(m);
+    busMarkers.clear();
+    lastFleet = [];
+    state.selectedBus = null; state.follow = false;
+    $("busCard").classList.add("hidden");
+  }
+
   function updateBuses() {
     const clock = E.wibNow();
+    if (state.mode === "routes") return { clock, count: routesMode.frame(clock) };
     const j = D.journeys[state.journey];
     const fleet = E.fleet(D, journeyPatterns(j, state.allBuses), clock)
       .map((b) => Object.assign(b, { onRoute: onRoute(b, j) }))
@@ -278,7 +289,7 @@
       state.selectedBus = null; state.follow = false; $("busCard").classList.add("hidden");
     }
     if (sel && state.follow) map.panTo([sel.lat, sel.lon], { animate: false });
-    return { clock, sel };
+    return { clock, sel, count: fleet.length };
   }
 
   function selectBus(id) {
@@ -333,7 +344,7 @@
     }
   });
   map.on("dragstart", () => {
-    if (state.follow) { state.follow = false; renderBusCard(); toast("Mode ikuti bus dimatikan"); }
+    if (state.mode === "journey" && state.follow) { state.follow = false; renderBusCard(); toast("Mode ikuti bus dimatikan"); }
   });
 
   // ======================================================================= panel
@@ -416,7 +427,7 @@
         html += `<div class="tl-item walk">
           <div class="tl-time"></div><div class="tl-rail"></div>
           <div class="tl-body"><div class="tl-note">🚶 Jalan kaki <b>${s.meters} m</b> (±${Math.round((s.end - s.start) / 60)} mnt)
-          ke Halte <b>${esc(stop(s.to).name)}</b> — keluar &amp; tap-in ulang masih dalam batas waktu integrasi tarif.</div></div>
+          ke Halte <b>${esc(stop(s.to).name)}</b>, keluar &amp; tap-in ulang masih dalam batas waktu integrasi tarif.</div></div>
         </div>`;
         return;
       }
@@ -494,23 +505,78 @@
     state.expanded = {};
     state.selectedBus = null;
     state.follow = false;
-    $("busCard").classList.add("hidden");
-    for (const m of busMarkers.values()) map.removeLayer(m);
-    busMarkers.clear();
+    clearJourneyBuses();
     drawJourney();
     fitJourney();
     tick(true);
   }
 
   // ======================================================================= toolbar
-  $("btnFit").addEventListener("click", fitJourney);
+  $("btnFit").addEventListener("click", () => (state.mode === "routes" ? routesMode.fit() : fitJourney()));
   $("btnLocate").addEventListener("click", () => {
     const s = stop(D.journeys[state.journey].legs[0].from);
     map.setView([s.lat, s.lon], 17);
     openStationPopup(D.journeys[state.journey].legs[0].from, [s.lat, s.lon]);
   });
   $("chkAllBuses").addEventListener("change", (e) => { state.allBuses = e.target.checked; tick(true); });
-  $("sheetHandle").addEventListener("click", () => $("panel").classList.toggle("expanded"));
+  $("sheetHandle").addEventListener("click", () => {
+    const ex = $("panel").classList.toggle("expanded");
+    $("sheetHandle").setAttribute("aria-expanded", String(ex));
+  });
+
+  // ======================================================================= mode: perjalanan / semua rute
+  const routesMode = window.TijeRoutes({ map, E, toast });
+  $("routeTotal").textContent = routesMode.total;
+
+  function setMode(mode) {
+    if (state.mode === mode) return false;
+    state.mode = mode;
+    const routes = mode === "routes";
+    $("tabJourney").setAttribute("aria-selected", String(!routes));
+    $("tabRoutes").setAttribute("aria-selected", String(routes));
+    $("tabJourney").tabIndex = routes ? -1 : 0;
+    $("tabRoutes").tabIndex = routes ? 0 : -1;
+    $("viewJourney").hidden = routes;
+    $("viewRoutes").hidden = !routes;
+    $("btnLocate").hidden = routes;
+    $("lblAllBuses").hidden = routes;
+    $("lblNetwork").textContent = routes ? "Garis semua rute" : "Jaringan BRT";
+    map.closePopup();
+    if (routes) {
+      clearJourneyBuses();
+      map.removeLayer(journeyLayer);
+      map.removeLayer(networkLayer);
+      routesMode.setNetwork($("chkNetwork").checked);
+      routesMode.enter();
+    } else {
+      routesMode.exit();
+      journeyLayer.addTo(map);
+      if ($("chkNetwork").checked) networkLayer.addTo(map);
+      fitJourney();
+    }
+    return true;
+  }
+
+  function onHash() {
+    const h = location.hash.replace(/^#/, "");
+    if (h === "rute" || h.startsWith("rute/")) {
+      setMode("routes");
+      routesMode.route(h.split("/").slice(1));
+    } else {
+      setMode("journey");
+    }
+    tick(true);
+  }
+  window.addEventListener("hashchange", onHash);
+
+  $("tabJourney").addEventListener("click", () => { location.hash = "#perjalanan"; });
+  $("tabRoutes").addEventListener("click", () => { location.hash = "#rute"; });
+  document.querySelector(".tabs").addEventListener("keydown", (e) => {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    const next = state.mode === "routes" ? $("tabJourney") : $("tabRoutes");
+    next.focus();
+    next.click();
+  });
 
   let toastTimer;
   function toast(msg) {
@@ -544,12 +610,18 @@
 
   // ======================================================================= loop
   function tick(forcePanel) {
-    const { clock } = updateBuses();
+    const { clock, count } = updateBuses();
     const sec = Math.floor(clock.sec);
     if (forcePanel || sec !== state.lastPanelSec) {
       state.lastPanelSec = sec;
       $("clock").textContent = E.fmtClock(clock.sec, true);
-      $("dayBadge").textContent = `${DAYS[clock.weekday]} · ${lastFleet.length} bus di layar`;
+      $("dayBadge").textContent = `${DAYS[clock.weekday]} · ${count} bus di layar`;
+      if (state.mode === "routes") {
+        routesMode.busTick();
+        routesMode.panelTick(clock, forcePanel);
+        $("dayBadge").textContent = `${DAYS[clock.weekday]} · ${routesMode.badge(count)}`;
+        return;
+      }
       if (state.selectedBus) renderBusCard();
       // panel cukup diperbarui tiap 5 detik (atau saat dipaksa)
       if (forcePanel || sec % 5 === 0) {
@@ -568,9 +640,9 @@
     requestAnimationFrame(frame);
   }
 
-  $("feedDate").textContent = D.feedDate;
+  $("feedDate").textContent = (window.TIJE_INDEX && window.TIJE_INDEX.feedDate) || D.feedDate;
   drawJourney();
   fitJourney();
-  tick(true);
+  onHash();
   requestAnimationFrame(frame);
 })();
