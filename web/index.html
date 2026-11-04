@@ -18,7 +18,7 @@
           <div class="logo" aria-hidden="true">TJ</div>
           <div>
             <div class="brand-title">TIJE Live</div>
-            <div class="brand-sub">Perencana Rute &amp; Pelacak Bus</div>
+            <div class="brand-sub">Semua Rute Transjakarta</div>
           </div>
         </div>
         <div class="clock">
@@ -27,46 +27,13 @@
         </div>
       </header>
 
-      <div class="tabs" role="tablist" aria-label="Mode aplikasi">
-        <button type="button" role="tab" id="tabJourney" aria-controls="viewJourney" aria-selected="true">Rasuna Said ke Jakbar</button>
-        <button type="button" role="tab" id="tabRoutes" aria-controls="viewRoutes" aria-selected="false" tabindex="-1">Semua Rute <span id="routeTotal" class="tab-count"></span></button>
-      </div>
-
       <div class="status-strip">
         <span id="modeBadge" class="badge badge-sched"><i></i>Estimasi jadwal GTFS</span>
         <span id="dayBadge" class="badge badge-plain">Memuat</span>
       </div>
 
-      <!-- ---------- Mode 1: 4 perjalanan Rasuna Said ke Jakarta Barat ---------- -->
-      <div id="viewJourney" role="tabpanel" aria-labelledby="tabJourney" class="view">
-        <section class="search-card">
-          <div class="search-row">
-            <span class="dot dot-origin"></span>
-            <div>
-              <div class="search-label">Dari</div>
-              <div class="search-value">Halte Rasuna Said</div>
-            </div>
-          </div>
-          <div class="search-sep"></div>
-          <div class="search-row">
-            <span class="dot dot-dest"></span>
-            <div>
-              <div class="search-label">Ke</div>
-              <div class="search-value">Jakarta Barat <span class="muted">· 4 tujuan</span></div>
-            </div>
-          </div>
-        </section>
-
-        <section>
-          <div class="section-title">Pilihan rute <span class="muted" id="planNote">berangkat sekarang</span></div>
-          <div id="journeyList" class="journey-list"></div>
-        </section>
-
-        <section id="detail" class="detail"></section>
-      </div>
-
-      <!-- ---------- Mode 2: semua rute Transjakarta ---------- -->
-      <div id="viewRoutes" role="tabpanel" aria-labelledby="tabRoutes" class="view" hidden>
+      <!-- ---------- Semua rute Transjakarta ---------- -->
+      <div id="viewRoutes" class="view">
         <div id="routesBrowse">
           <div class="finder">
             <label class="finder-input">
@@ -98,12 +65,9 @@
 
       <div class="map-toolbar">
         <button type="button" id="btnFit" title="Tampilkan seluruh rute">⤢ Rute</button>
-        <button type="button" id="btnLocate" title="Ke Halte Rasuna Said">◎ Rasuna Said</button>
-        <label class="toggle" id="lblAllBuses"><input type="checkbox" id="chkAllBuses" /> Semua bus koridor</label>
-        <label class="toggle"><input type="checkbox" id="chkNetwork" checked /> <span id="lblNetwork">Jaringan BRT</span></label>
+        <label class="toggle"><input type="checkbox" id="chkNetwork" checked /> Garis semua rute</label>
       </div>
 
-      <div id="busCard" class="bus-card hidden"></div>
       <div id="routeBusCard" class="bus-card hidden"></div>
       <div id="toast" class="toast hidden" role="status"></div>
     </main>
@@ -111,7 +75,6 @@
 
   <script src="vendor/leaflet/leaflet.js"></script>
   <script src="config.js"></script>
-  <script src="data.js"></script>
   <script src="routes-index.js"></script>
   <script src="engine.js"></script>
   <script src="routes.js"></script>

@@ -31,7 +31,6 @@ a { color: var(--tj-blue); }
 }
 /* Fokus keyboard terlihat di semua kontrol */
 :focus-visible { outline: 3px solid var(--tj-blue); outline-offset: 2px; border-radius: 6px; }
-.topbar :focus-visible, .tabs :focus-visible { outline-color: var(--tj-blue); }
 
 #app { display: flex; height: 100vh; height: 100dvh; }
 
@@ -72,18 +71,6 @@ a { color: var(--tj-blue); }
 #clock { font-variant-numeric: tabular-nums; font-weight: 800; font-size: 18px; }
 .clock-sub { font-size: 12px; opacity: 0.8; }
 
-.search-card {
-  background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
-  padding: 12px 14px;
-}
-.search-row { display: flex; align-items: center; gap: 12px; }
-.search-sep { border-left: 2px dotted #c3cbd8; height: 14px; margin: 3px 0 3px 5px; }
-.search-label { font-size: 12px; color: var(--muted); }
-.search-value { font-weight: 700; }
-.dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
-.dot-origin { background: #fff; border: 3px solid var(--tj-blue); }
-.dot-dest { background: var(--red); border: 3px solid #ffd5d6; }
-
 .status-strip { display: flex; gap: 6px; flex-wrap: wrap; }
 .badge {
   display: inline-flex; align-items: center; gap: 6px;
@@ -98,73 +85,25 @@ a { color: var(--tj-blue); }
 .section-title { font-weight: 800; font-size: 14px; margin: 2px 2px 8px; display: flex; justify-content: space-between; }
 .section-title .muted { font-size: 12px; }
 
-/* ------------------------------------------------------------------ journey cards */
-.journey-list { display: flex; flex-direction: column; gap: 8px; }
-.jcard {
-  background: var(--card); border: 2px solid transparent; border-radius: var(--radius);
-  box-shadow: var(--shadow); padding: 11px 12px; cursor: pointer; text-align: left;
-  font: inherit; color: inherit; width: 100%;
-  transition: border-color 0.15s, transform 0.15s;
-}
-.jcard:hover { transform: translateY(-1px); }
-.jcard.active { border-color: var(--tj-blue); }
-.jcard-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-.jcard-dest { font-weight: 800; font-size: 15px; }
-.jcard-area { font-size: 12px; color: var(--muted); }
-.jcard-dur { font-weight: 900; font-size: 18px; white-space: nowrap; }
-.jcard-dur small { font-size: 12px; font-weight: 600; color: var(--muted); }
+/* ------------------------------------------------------------------ chip & ringkasan */
 .chips { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; margin: 8px 0 6px; }
 .chip {
   display: inline-flex; align-items: center; justify-content: center;
   min-width: 28px; height: 22px; padding: 0 7px; border-radius: 6px;
   font-weight: 800; font-size: 12px; line-height: 1;
 }
-.chip-walk { background: #eef1f6; color: var(--muted); }
-.chev { color: #b4bdcb; font-size: 12px; }
-.jcard-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
-.jcard-meta b { color: var(--text); }
-.depart-now { color: var(--green) !important; font-weight: 800; }
 
-/* ------------------------------------------------------------------ detail timeline */
-.detail { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px; }
-.detail-head { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
-.detail-title { font-weight: 800; font-size: 15px; }
-.detail-sub { font-size: 12px; color: var(--muted); }
 .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 10px 0 14px; }
 .summary-grid div { background: #f5f7fb; border-radius: 10px; padding: 7px 6px; text-align: center; }
 .summary-grid b { display: block; font-size: 14px; }
 .summary-grid span { font-size: 12px; color: var(--muted); }
 
-.tl { position: relative; }
-.tl-item { position: relative; display: grid; grid-template-columns: 44px 22px 1fr; gap: 0 6px; }
-.tl-time { font-size: 12px; font-weight: 800; text-align: right; padding-top: 2px; font-variant-numeric: tabular-nums; }
-.tl-rail { position: relative; display: flex; justify-content: center; }
-.tl-rail::before {
-  content: ""; position: absolute; top: 0; bottom: 0; width: 5px; border-radius: 3px;
-  background: var(--rail, #d7dde7);
-}
-.tl-item.first .tl-rail::before { top: 9px; }
-.tl-item.last .tl-rail::before { bottom: calc(100% - 9px); }
-.tl-item.walk .tl-rail::before { background: repeating-linear-gradient(#aab4c3 0 4px, transparent 4px 8px); width: 3px; }
 .tl-node {
   position: relative; z-index: 1; margin-top: 3px;
   width: 14px; height: 14px; border-radius: 50%; background: #fff; border: 3px solid var(--rail, #8d99ab);
 }
 .tl-node.small { width: 9px; height: 9px; border-width: 2px; margin-top: 5px; }
-.tl-body { padding-bottom: 14px; min-width: 0; }
-.tl-stop { font-weight: 800; cursor: pointer; }
-.tl-stop:hover { color: var(--tj-blue); }
 .tl-note { font-size: 12px; color: var(--muted); margin-top: 2px; }
-.ride-box { margin-top: 7px; background: #f5f7fb; border-radius: 10px; padding: 8px 10px; }
-.ride-head { display: flex; align-items: center; gap: 7px; font-weight: 700; font-size: 13px; }
-.next-buses { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 7px; }
-.nb { font-size: 12px; font-weight: 800; padding: 3px 8px; border-radius: 999px; background: #fff; border: 1px solid var(--line); }
-.nb.soon { background: #e3f7ec; border-color: #bfe9d0; color: var(--green); }
-.stops-toggle { margin-top: 7px; font-size: 12px; font-weight: 700; color: var(--tj-blue); cursor: pointer; background: none; border: 0; padding: 0; }
-.mini-stops { margin: 6px 0 0; padding: 0; list-style: none; }
-.mini-stops li { display: flex; align-items: center; gap: 6px; font-size: 12px; padding: 3px 0; cursor: pointer; }
-.mini-stops li:hover { color: var(--tj-blue); }
-.mini-stops .bus-pill { margin-left: auto; font-size: 12px; font-weight: 800; color: #fff; border-radius: 999px; padding: 1px 7px; }
 .warn { background: #fff7e6; color: #8a5a00; border-radius: 10px; padding: 10px; font-size: 13px; }
 
 .foot { font-size: 12px; color: var(--muted); line-height: 1.5; padding: 2px 4px 8px; }
@@ -221,19 +160,6 @@ a { color: var(--tj-blue); }
 .leaflet-tooltip.stop-label.major { font-weight: 800; font-size: 12.5px; }
 .leaflet-tooltip.stop-label::before { display: none; }
 .zoom-lt14 .stop-label.minor, .zoom-lt16 .stop-label.net { display: none; }
-.zoom-lt13 .stop-label.major.mid { display: none; }
-
-.pin { background: none; border: 0; }
-.pin-body {
-  width: 30px; height: 30px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg);
-  display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
-  border: 3px solid #fff;
-}
-.pin-body span { transform: rotate(45deg); color: #fff; font-weight: 900; font-size: 13px; }
-.walk-icon {
-  background: #fff; border-radius: 50%; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
-  display: flex !important; align-items: center; justify-content: center; font-size: 14px;
-}
 
 /* Popup halte */
 .leaflet-popup-content-wrapper { border-radius: 14px; }
@@ -291,18 +217,6 @@ a { color: var(--tj-blue); }
   #mapWrap { flex: 1; }
   .bus-card { left: 12px; right: 12px; width: auto; bottom: 12px; }
 }
-
-/* ================================================================== mode: tab */
-.tabs {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
-  background: #e4e9f1; border-radius: 12px; padding: 4px;
-}
-.tabs button {
-  font: inherit; font-size: 13px; font-weight: 800; color: var(--muted);
-  background: transparent; border: 0; border-radius: 9px; min-height: 40px; cursor: pointer;
-}
-.tabs button[aria-selected="true"] { background: #fff; color: var(--tj-blue-dark); box-shadow: 0 1px 3px rgba(16, 24, 40, 0.12); }
-.tab-count { font-weight: 700; font-size: 12px; color: var(--muted); }
 
 /* ================================================================== semua rute: pencarian */
 .finder { display: flex; gap: 6px; }
@@ -457,7 +371,7 @@ a { color: var(--tj-blue); }
 
 @media (prefers-reduced-motion: reduce) {
   .spinner, .badge i { animation: none; }
-  .jcard, #panel { transition: none; }
+  #panel { transition: none; }
 }
 
 /* Target sentuh 44px di layar sentuh */
@@ -466,7 +380,7 @@ a { color: var(--tj-blue); }
   .rs-name, .place-name, .cat { min-height: 44px; }
   .map-toolbar button, .toggle { min-height: 44px; }
   .bc-close { width: 44px; height: 44px; }
-  .tabs button, .back-btn, .run-only { min-height: 44px; }
+  .back-btn, .run-only { min-height: 44px; }
   .link-btn { min-height: 44px; display: inline-flex; align-items: center; }
 }
 

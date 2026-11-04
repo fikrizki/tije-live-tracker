@@ -9,6 +9,7 @@
 
   window.TijeRoutes = function (ctx) {
     const { map, E, toast } = ctx;
+    const liveVehicles = ctx.liveVehicles || (() => []);
     const X = window.TIJE_INDEX;
     const $ = (id) => document.getElementById(id);
     const DAY_NAMES = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
@@ -545,10 +546,16 @@
     function updateBuses(clock) {
       const pay = loaded.get(st.routeId);
       st.fleet = pay ? E.fleet(RD, pay.order, clock) : [];
+      // Kendaraan GPS dari liveFeedUrl (config.js), jika diisi: hanya untuk rute yang dibuka
+      for (const v of liveVehicles()) {
+        if (String(v.route_id) !== st.routeId) continue;
+        st.fleet.push({ id: "gps:" + v.id, gps: true, routeId: st.routeId, tripId: null, lat: v.lat, lon: v.lon,
+          bearing: v.bearing || 0, label: String(v.id), headsign: v.headsign || "", stopped: false });
+      }
       const seen = new Set();
       for (const b of st.fleet) {
         seen.add(b.id);
-        const cls = [b.stopped ? "stopped" : "", b.tripId === st.tid ? "" : "offroute", st.selectedBus === b.id ? "selected" : ""].join(" ");
+        const cls = [b.stopped ? "stopped" : "", b.gps ? "gps" : b.tripId === st.tid ? "" : "offroute", st.selectedBus === b.id ? "selected" : ""].join(" ");
         let m = busMarkers.get(b.id);
         if (!m) {
           m = L.marker([b.lat, b.lon], { pane: "buses", icon: busIcon(b, cls), keyboard: false });
@@ -586,6 +593,12 @@
       const b = st.fleet.find((x) => x.id === st.selectedBus);
       if (!b) { card.classList.add("hidden"); return; }
       const r = byId.get(b.routeId);
+      if (b.gps) {
+        card.innerHTML = `<div class="bc-head">${chip(b.routeId)}<div class="bc-title">${esc(b.label)}<small>Posisi GPS live</small></div>
+          <button type="button" class="bc-close" data-act="close" aria-label="Tutup info bus">✕</button></div>`;
+        card.classList.remove("hidden");
+        return;
+      }
       const p = RD.patterns[b.tripId];
       const status = b.stopped ? `Berhenti di <b>${esc(RD.stops[b.atStop].name)}</b>` : `Menuju <b>${esc(RD.stops[b.nextStop].name)}</b> · ${E.fmtWait(b.etaNext)}`;
       card.style.setProperty("--c", r.color);

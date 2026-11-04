@@ -14,8 +14,6 @@
   "use strict";
 
   const DAY = 86400;
-  const WALK_MPS = 1.1;     // kecepatan jalan kaki
-  const WALK_EXTRA = 60;    // tambahan waktu naik-turun JPO / tap gate
   const MAX_DWELL = 20;     // waktu berhenti maksimum di halte (detik)
 
   /** Jam aktual WIB, tidak bergantung zona waktu perangkat. */
@@ -157,74 +155,11 @@
     return (data.stops[sid] && data.stops[sid].station) || sid;
   }
 
-  /** Posisi (i, j) dalam pola p yang melayani stasiun asal -> tujuan (tercepat). */
-  function legPositions(data, p, fromSid, toSid) {
-    const fs = stationOf(data, fromSid), ts = stationOf(data, toSid);
-    let best = null;
-    for (let i = 0; i < p.stops.length; i++) {
-      if (stationOf(data, p.stops[i]) !== fs) continue;
-      for (let j = i + 1; j < p.stops.length; j++) {
-        if (stationOf(data, p.stops[j]) === ts && (!best || p.t[j] - p.t[i] < best.ride)) {
-          best = { i, j, ride: p.t[j] - p.t[i] };
-        }
-      }
-    }
-    return best;
-  }
-
   function haversine(a, b) {
     const R = 6371000, toR = Math.PI / 180;
     const dLat = (b[0] - a[0]) * toR, dLon = (b[1] - a[1]) * toR;
     const h = Math.sin(dLat / 2) ** 2 + Math.cos(a[0] * toR) * Math.cos(b[0] * toR) * Math.sin(dLon / 2) ** 2;
     return 2 * R * Math.asin(Math.sqrt(h));
-  }
-
-  /**
-   * Rencana perjalanan jika berangkat sekarang: memilih bus paling awal di tiap leg
-   * (dari semua pola yang melayani leg tsb), menambah waktu jalan kaki transit.
-   */
-  function planJourney(data, journey, clock) {
-    let t = clock.sec;
-    const steps = [];
-    for (const leg of journey.legs) {
-      if (leg.type === "walk") {
-        const dur = leg.meters / WALK_MPS + WALK_EXTRA;
-        steps.push({ type: "walk", start: t, end: t + dur, meters: leg.meters, from: leg.from, to: leg.to });
-        t += dur;
-        continue;
-      }
-      let best = null;
-      for (const tid of leg.patterns) {
-        const p = data.patterns[tid];
-        if (!serviceActive(data, p.service_id, clock.weekday)) continue;
-        const pos = legPositions(data, p, leg.from, leg.to);
-        if (!pos) continue;
-        const arr = nextArrivals(p, pos.i, t, 3);
-        if (!arr.length) continue;
-        const end = arr[0] + pos.ride;
-        if (!best || end < best.end) best = { tid, p, pos, board: arr[0], end, upcoming: arr };
-      }
-      if (!best) return { ok: false, steps, reason: "Tidak ada layanan pada jam ini" };
-      // daftar kedatangan gabungan semua pola di halte naik
-      const merged = [];
-      for (const tid of leg.patterns) {
-        const p = data.patterns[tid];
-        if (!serviceActive(data, p.service_id, clock.weekday)) continue;
-        const pos = legPositions(data, p, leg.from, leg.to);
-        if (pos) nextArrivals(p, pos.i, clock.sec, 3).forEach((x) => merged.push({ at: x, tid }));
-      }
-      merged.sort((a, b) => a.at - b.at);
-      steps.push({
-        type: "ride", routeId: leg.route_id, tripId: best.tid, headsign: best.p.headsign,
-        wait: best.board - t, board: best.board, end: best.end,
-        fromPos: best.pos.i, toPos: best.pos.j,
-        stopsCount: best.pos.j - best.pos.i,
-        from: best.p.stops[best.pos.i], to: best.p.stops[best.pos.j],
-        upcoming: merged.slice(0, 4),
-      });
-      t = best.end;
-    }
-    return { ok: true, steps, start: clock.sec, end: t, duration: t - clock.sec };
   }
 
   /** Headway (detik) yang berlaku pada detik `sec`, atau null jika di luar jendela operasi. */
@@ -274,7 +209,7 @@
 
   return {
     wibNow, fmtClock, fmtWait, serviceActive, activeDepartures, vehicleState, fleet,
-    nextArrivals, legPositions, planJourney, pointAtDist, haversine, stationOf,
+    nextArrivals, pointAtDist, haversine, stationOf,
     headwayAt, lastDeparture, routeLive,
   };
 });
